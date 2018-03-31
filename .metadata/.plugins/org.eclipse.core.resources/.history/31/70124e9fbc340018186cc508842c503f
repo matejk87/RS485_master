@@ -1,0 +1,203 @@
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+//#include <conio.h>
+
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
+
+#define PRINT_XML 0
+#include "radar_msg.h"
+#include "rs232.h"
+#include "crc16.h"
+#include "stxetx.h"
+//#include "serial_master.h"
+
+int timeout(clock_t *timer,unsigned long timeout)
+{
+	if(!timeout){*timer= clock();return 1;}
+	if((clock()- *timer)>timeout)
+	{
+		*timer = clock();
+		return 1;
+	}
+	return 0;
+}
+
+void gotoxy(int x,int y)
+ {
+ printf("%c[%d;%df",0x1B,y,x);
+ }
+
+#define MAX_DEVICES 20
+int main(int argc, char ** argp) //arg: comport_n rs485_addr
+{
+	clock_t print_timer;
+	int meja_hitrosti = SPEED_CLASS_LEN;
+	int n_of_dev=0;
+	unsigned long radar_uptime=0;
+	unsigned long error_cntr=0,msg_cntr=0,byte_rate=0,msg_per_sec=0,print_n=0,msg_cntr_old=0;
+	speed_class_t speed_class[6];
+	clock_t msg_timer;
+	FILE *log_file,*stat_rel_file,*stat_abs_file;
+	unsigned long seconds;
+	time_t rawtime;
+	struct tm * timest;
+  int  PacketSent=0;
+  unsigned long dev_errors[MAX_DEVICES];
+  int i,result,device_addresses[MAX_DEVICES],
+  cport_nr=0,        /* /dev/ttyS0 (COM1 on windows) */
+  cport_n_win=1,
+  bdrate=115200;
+  unsigned char *program_data;
+  if(argc < 2){
+	  printf(" RS485_tester - argc error!");
+	  printf("\n arguments: com_port_n RS485_addr");
+      return 0;
+  }
+  if(argc > 2){
+	  meja_hitrosti = strtoul(argp[3],0,0)/10;
+  }
+  //else meja_hitrosti = SPEED_CLASS_LEN;
+  cport_nr=strtoul(argp[1],0,0)-1;
+  cport_n_win = strtoul(argp[1],0,0);
+  if(OpenComport(cport_nr, bdrate)){
+    printf("Can not open comport COM%d\n",cport_n_win);
+    Sleep(3000);
+    //getchar();
+    return(0);
+  }else printf("\n COM%d open:OK\n",cport_n_win);
+  if(serial_master_init(cport_nr)!=1){
+	  	printf("serial_master_init ERROR");
+	    getchar();
+	    return(0);
+  }
+  for(i=0;argc>i;i++){
+	  printf("arg[%d]=",i);
+	  printf(argp[i]);
+	  printf("\n");
+  }
+  printf("\nRS485 devices:");
+  for(i=2;argc>i;i++)
+  {
+	  device_addresses[n_of_dev]= strtoul(argp[i],0,0);
+	  printf("\n - 0x%x",device_addresses[n_of_dev]);
+	  dev_errors[n_of_dev]=0;
+	  n_of_dev++;
+  }
+  /*device_addresses = strtoul(argp[2],0,0);
+  printf("device addres:0x%x\n",device_addres);
+  if(!MsgPing(device_addres)){
+	  printf("no response from device...");
+	  Sleep(2000);
+	  return 0;
+  }*/
+ // device_addresses[0]=0x1300;
+ // printf("device:0x%x detected\n",device_addresses[0]);
+  Sleep(5);
+  seconds = time(NULL);
+ // printf ("%ld hours since January 1, 1970", seconds/3600);
+  printf("\nclocks per second:%u",CLOCKS_PER_SEC);
+  time(&rawtime);
+  timest = localtime ( &rawtime );
+  printf ("\nlocal time: %s", ctime (&rawtime) );
+  log_file = fopen("comm_log.txt","a+"); //apend file (add text to a file or create a file if it does not exist.
+  fprintf(log_file,"program started at:%s",ctime (&rawtime)); /*writes*/
+
+ /* printf("\nping to 0x%x:",device_addresses[0]);
+  if(MsgPing(device_addresses[0]))printf("OK\n");
+  else printf("NO RESPONSE\n");
+  Sleep(5);*/
+  while(1)
+  {
+	  time(&rawtime);
+	  timest = localtime ( &rawtime );
+
+	  for(i=0;i<n_of_dev;i++)
+	  {
+		  if(!MsgPing(device_addresses[i]))
+		  {
+			  error_cntr++;
+			  dev_errors[i]++;
+
+		  }
+		  msg_cntr++;
+	  }
+	  if(kbhit())return 1;
+	  if(timeout(&print_timer,100))
+	  {
+		  print_n++;
+		  if(print_n >= 10)
+		  {
+			print_n = 0;
+			msg_per_sec = msg_cntr-msg_cntr_old;
+			msg_cntr_old = msg_cntr;
+		  }
+		 // gotoxy(0,40);
+		 //clrscr();
+		  system("cls"); //"clear" for linux
+		  printf("\r\rtotal_msg_cnt:%u errors:%u msg/s:%u  ",msg_cntr,error_cntr,msg_per_sec);
+		  for(i=0;i<n_of_dev;i++)
+		  {
+			  printf("\n dev:0x%x msg:%u err:%u",device_addresses[i],msg_cntr/n_of_dev,dev_errors[i]);
+		  }
+	  }
+	 //Sleep(5);
+
+/*	  if(timest->tm_min%15==0){
+		  if(timeout(&msg_timer,2*60000)){
+			  MsgGetSpeedClass(device_addres,0,&speed_class[2]);
+			  MsgGetSpeedClass(device_addres,1,&speed_class[3]);
+			  MsgGetUptime(device_addres,&radar_uptime);
+			  GetSpeedClassDiff(&speed_class[0],&speed_class[2],&speed_class[4]);
+			  GetSpeedClassDiff(&speed_class[1],&speed_class[3],&speed_class[5]);
+
+			  speed_class[0] = speed_class[2];
+			  speed_class[1] = speed_class[3];
+			  time(&rawtime);
+			  timest = localtime ( &rawtime );
+			  printf("\n");
+			  fprintf(stat_rel_file,"\n%d:%d:%d;%d.%d.%d;%u;",timest->tm_hour,timest->tm_min,timest->tm_sec,timest->tm_mday,timest->tm_mon,timest->tm_year+1900,radar_uptime);
+			  fprintf(stat_abs_file,"\n%d:%d:%d;%d.%d.%d;%u;",timest->tm_hour,timest->tm_min,timest->tm_sec,timest->tm_mday,timest->tm_mon,timest->tm_year+1900,radar_uptime);
+			  printf("%d:%d:%d;%d.%d.%d;\n",timest->tm_hour,timest->tm_min,timest->tm_sec,timest->tm_mday,timest->tm_mon,timest->tm_year+1900);
+			  for(i=0;i<meja_hitrosti;i++)
+			  {
+				 // printf("%d;%d;%d\n",(i+1)*10,speed_class[0].cntrs[i],speed_class[1].cntrs[i]);
+				  printf("%d;",speed_class[2].cntrs[i]);
+				  fprintf(stat_rel_file,"%d;",speed_class[4].cntrs[i]);
+				  fprintf(stat_abs_file,"%d;",speed_class[2].cntrs[i]);
+			  }
+			  printf("\n");
+			  fprintf(stat_rel_file,";");
+			  fprintf(stat_abs_file,";");
+			  for(i=0;i<meja_hitrosti;i++)
+			  {
+				  printf("%d;",speed_class[3].cntrs[i]);
+				  fprintf(stat_rel_file,"%d;",speed_class[5].cntrs[i]);
+				  fprintf(stat_abs_file,"%d;",speed_class[3].cntrs[i]);
+			  }
+			  // fprintf(stat_file,"\n");
+			//  printf("\n");
+			  fflush(stat_rel_file);
+			  fflush(stat_abs_file);
+		  }
+	  }
+	  Sleep(100);*/
+  }
+  fclose(log_file); /*done!*/
+  CloseComport(cport_nr);
+
+#ifdef _WIN32
+  	getchar();
+    Sleep(2000);  /* it's ugly to use a sleeptimer, in a real program, change the while-loop into a (interrupt) timerroutine */
+#else
+    usleep(100000);  /* sleep for 100 milliSeconds */
+#endif
+  return(0);
+}
+
+

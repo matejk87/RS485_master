@@ -1,0 +1,82 @@
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
+
+#include "rs232.h"
+#include "crc16.h"
+#include "stxetx.h"
+#include "serial_master.h"
+#include "rol.h"
+#include "timer.h"
+
+
+#define MAX_DEVICES 20
+
+
+
+t_timer check_log_timer;
+
+
+
+int main(int argc, char ** argp)
+{
+	unsigned short dev_img_crc=0,my_crc=0;
+  int  temperature=0,PacketSent=0;
+  int n=0,i=0,result,device_addres,app_offset=0,progress=0,
+  cport_nr=0,        /* /dev/ttyS0 (COM1 on windows) */
+  bdrate=115200;
+
+
+  if(argc < 3)
+  {
+	  printf(" argc error!\n");
+      return 0;
+  }
+  cport_nr=strtoul(argp[1],0,0)-1;
+  if(OpenComport(cport_nr, bdrate))
+  {
+    printf("Can not open comport COM%d\n",cport_nr);
+    getchar();
+    return(0);
+  }else printf("\n COM%d open:OK\n",cport_nr);
+  if(serial_master_init(cport_nr)!=1)
+  {
+	  	printf("serial_master_init ERROR");
+	    getchar();
+	    return(0);
+  }
+  for(i=1;argc>i;i++)
+  {
+	  printf("arg[%d]=",i);
+	  printf(argp[i]);
+	  printf("\n");
+  }
+  printf("clocks_per_sec:%u\n",CLOCKS_PER_SEC);
+
+
+  time_t clk = time(NULL);
+  printf("%s", ctime(&clk));
+
+  TemperatureLogBuff[0]=0;
+  RoletaLogBuff[0]=0;
+
+  while(1)
+  {
+	  RoletaMain();
+
+
+
+  }
+  CloseComport(cport_nr);
+
+  return(0);
+}
+
+

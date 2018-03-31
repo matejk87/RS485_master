@@ -1,0 +1,73 @@
+11:04:37 **** Incremental Build of configuration Release for project RS485_tester ****
+make all 
+Building file: ../src/main.c
+Invoking: GCC C Compiler
+gcc -O3 -Wall -c -fmessage-length=0 -MMD -MP -MF"src/main.d" -MT"src/main.o" -o "src/main.o" "../src/main.c"
+../src/main.c: In function ‘main’:
+../src/main.c:84:4: warning: format not a string literal and no format arguments [-Wformat-security]
+    printf(argp[i]);
+    ^
+../src/main.c:87:10: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 2 has type ‘long int’ [-Wformat=]
+   printf("clocks_per_sec:%u\n",CLOCKS_PER_SEC);
+          ^
+../src/main.c:129:14: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 2 has type ‘long unsigned int’ [-Wformat=]
+       printf("total_msg_cnt:%u errors:%u msg/s:%u  \n",msg_cntr,error_cntr,msg_per_sec);
+              ^
+../src/main.c:129:14: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 3 has type ‘long unsigned int’ [-Wformat=]
+../src/main.c:129:14: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 4 has type ‘long unsigned int’ [-Wformat=]
+../src/main.c:132:15: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 3 has type ‘long unsigned int’ [-Wformat=]
+        printf("dev:0x%x msg:%u err:%u\n",device_addresses[i],msg_cntr/n_of_dev,dev_errors[i]);
+               ^
+../src/main.c:132:15: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 4 has type ‘long unsigned int’ [-Wformat=]
+../src/main.c:54:38: warning: unused variable ‘progress’ [-Wunused-variable]
+   int n=0,device_addres,app_offset=0,progress=0,
+                                      ^
+../src/main.c:54:25: warning: unused variable ‘app_offset’ [-Wunused-variable]
+   int n=0,device_addres,app_offset=0,progress=0,
+                         ^
+../src/main.c:54:11: warning: unused variable ‘device_addres’ [-Wunused-variable]
+   int n=0,device_addres,app_offset=0,progress=0,
+           ^
+../src/main.c:54:7: warning: unused variable ‘n’ [-Wunused-variable]
+   int n=0,device_addres,app_offset=0,progress=0,
+       ^
+../src/main.c:53:15: warning: variable ‘timest’ set but not used [-Wunused-but-set-variable]
+   struct tm * timest;
+               ^
+../src/main.c:51:41: warning: unused variable ‘byte_rate’ [-Wunused-variable]
+   unsigned long error_cntr=0,msg_cntr=0,byte_rate=0,msg_per_sec=0,print_n=0,msg_cntr_old=0;
+                                         ^
+../src/main.c:50:22: warning: unused variable ‘PacketSent’ [-Wunused-variable]
+   int  temperature=0,PacketSent=0;
+                      ^
+../src/main.c:50:8: warning: unused variable ‘temperature’ [-Wunused-variable]
+   int  temperature=0,PacketSent=0;
+        ^
+../src/main.c:49:31: warning: unused variable ‘my_crc’ [-Wunused-variable]
+  unsigned short dev_img_crc=0,my_crc=0;
+                               ^
+../src/main.c:49:17: warning: unused variable ‘dev_img_crc’ [-Wunused-variable]
+  unsigned short dev_img_crc=0,my_crc=0;
+                 ^
+../src/main.c:48:12: warning: unused variable ‘result’ [-Wunused-variable]
+    int i=0,result,device_addresses[MAX_DEVICES];
+            ^
+../src/main.c:128:7: warning: ignoring return value of ‘system’, declared with attribute warn_unused_result [-Wunused-result]
+       system("clear"); //"clear" for linux  "cls for win"
+       ^
+../src/main.c:30:13: warning: ‘print_timer’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+  if((clock()- *timer)>timeout)
+             ^
+../src/main.c:46:10: note: ‘print_timer’ was declared here
+  clock_t print_timer;
+          ^
+Finished building: ../src/main.c
+ 
+Building target: RS485_tester
+Invoking: GCC C Linker
+gcc  -o "RS485_tester"  ./src/crc16.o ./src/main.o ./src/rol.o ./src/rs232.o ./src/serial_master.o ./src/stxetx.o ./src/timer.o   
+Finished building target: RS485_tester
+ 
+
+11:04:37 Build Finished (took 175ms)
+

@@ -1,0 +1,19 @@
+23:15:38 **** Incremental Build of configuration Release for project RS485_master ****
+make all 
+Building file: ../src/rol.c
+Invoking: GCC C Compiler
+gcc -O3 -Wall -c -fmessage-length=0 -MMD -MP -MF"src/rol.d" -MT"src/rol.o" -o "src/rol.o" "../src/rol.c"
+../src/rol.c: In function ‘RoletaMain’:
+../src/rol.c:148:6: warning: unused variable ‘i’ [-Wunused-variable]
+  int i;
+      ^
+Finished building: ../src/rol.c
+ 
+Building target: RS485_master
+Invoking: GCC C Linker
+gcc  -o "RS485_master"  ./src/crc16.o ./src/main.o ./src/rol.o ./src/rs232.o ./src/serial_master.o ./src/stxetx.o ./src/timer.o   
+Finished building target: RS485_master
+ 
+
+23:15:38 Build Finished (took 204ms)
+

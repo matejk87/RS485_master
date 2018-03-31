@@ -1,0 +1,6 @@
+22:26:08 **** Incremental Build of configuration Release for project test_eclipse ****
+make all 
+make: Nothing to be done for 'all'.
+
+22:26:08 Build Finished (took 108ms)
+

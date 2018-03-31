@@ -1,0 +1,6 @@
+23:20:20 **** Incremental Build of configuration Release for project RS485_loader ****
+make all 
+make: Nothing to be done for 'all'.
+
+23:20:20 Build Finished (took 96ms)
+
